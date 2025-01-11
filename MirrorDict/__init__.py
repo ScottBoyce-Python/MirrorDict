@@ -1,24 +1,81 @@
 """
 MirrorDict Module
 
-This module defines the `MirrorDict` class.
-
+This module defines the `MirrorDict` class, a bi-directional dictionary-like object.
+It supports all the dict methods and maintains a mirrored relationship between
+keys and values such that `key:value` pairs are also stored as `value:key` pairs.
+The order of the keys is preserved, but the order of the values is not guaranteed.
+Methods, such as keys() and values() method return the items that were set as
+initially as a key and value. Requires that both the key and values be hashable and unique.
 
 Classes:
-    - `MirrorDict`: 
-
+    - `MirrorDict`: Represents a bi-directional dictionary, where each key-value pair
+      is mirrored as a value-key pair for efficient reverse lookups.
 
 Key Features:
-    - TBA
+    - Automatically maintains a bi-directional mapping between keys and values.
+        - Key-index lookup will return `value` for `key`, and return `key` for `value`.
+    - Ensures all keys and values are hashable.
+    - Supports standard dictionary operations (e.g., `get`, `setdefault`, `pop`).
+    - What is stored initially as a key   is represented as a `dict_keys` and
+      what is stored initially as a value is represented as a `dict_values`.
 
 Constructors:
-    MirrorDict():
-        Main class .
+    MirrorDict(*args, **kwargs):
+        Initializes the dictionary with mappings, iterables, or keyword arguments.
 
 Example Usage:
     >>> from MirrorDict import MirrorDict
+    >>> md = MirrorDict({'a': 1, 'b': 2})
+    >>> md['c'] = 3
+    >>> print(md[3])
+    'c'
+    >>> del md['a']
+    >>> print(md)
+    MirrorDict({'b': 2, 2: 'b', 'c': 3, 3: 'c'})
     >>>
-
+    >>>md = MirrorDict()
+    >>>md["a"] = 1                                # Stored as: key="a", value=1
+    >>>md["b"] = 2                                # Stored as: key="b", value=2
+    >>>md["c"] = 3                                # Stored as: key="c", value=3
+    >>>
+    >>>print( md["b"] )
+    2
+    >>>print( md[2] )
+    b
+    >>>
+    >>>print( md.keys(), md.values() )
+    dict_keys(['a', 'b', 'c']) dict_values([1, 2, 3])
+    >>>
+    >>print( md.items() )
+    dict_items([('a', 1), ('b', 2), ('c', 3)])
+    >>>
+    >>>md.update( [("d", 4), ("e", 5)] )
+    >>>md["f"] = 6
+    >>>
+    >>>print( md.keys(), md.values() )
+    dict_keys(['a', 'b', 'c', 'd', 'e', 'f']) dict_values([1, 2, 3, 4, 5, 6])
+    >>>
+    >>print( md.items() )
+    dict_items([('a', 1), ('b', 2), ('c', 3), ('d', 4), ('e', 5), ('f', 6)])
+    >>>
+    >>>print( md.pop(3) )  # if 3 is k or v, drop k:v and v:k pairs and return the opposite, otherwise raise KeyError
+    c
+    >>>del md["e"]         # if "e" is k or v, drop k:v and v:k pairs, otherwise raise KeyError
+    >>>
+    >>>print( md.keys(), md.values() )
+    dict_keys(['a', 'b', 'd', 'f']) dict_values([1, 2, 4, 6])
+    >>>
+    >>print( md.items() )
+    dict_items([('a', 1), ('b', 2), ('d', 4), ('f', 6)])
+    >>>
+    >>>md[2] = 'b'                               # set changes key=2, value="b"
+    >>>
+    >>>print( md.keys(), md.values() )
+    dict_keys(['a', 'd', 'f', 2]) dict_values([1, 4, 6, 'b'])
+    >>>
+    >>print( md.items() )
+    dict_items([('a', 1), ('d', 4), ('f', 6), (2, 'b')])
 """
 
 # %% -----------------------------------------------------------------------------------------------
@@ -48,6 +105,42 @@ import inspect
 
 
 class MirrorDict(MutableMapping):
+    """
+    A dictionary-like object that maintains a bi-directional mapping between keys and values.
+
+    The `MirrorDict` ensures every key-value pair added is mirrored as a value-key pair.
+    This means you can look up either by key or by value, and the corresponding value or
+    key will be returned.
+
+    Key Features:
+        - Keys and values are automatically mirrored.
+        - Supports all standard dictionary operations (get, set, delete, iterate, etc.).
+        - Accepts initialization with mappings, iterables of key-value pairs, or keyword arguments.
+        - Enforces consistency: when a key or value is updated, the mirrored relationship is updated.
+
+    Constraints:
+        - Keys and values must be hashable.
+        - Overwriting an existing key-value or value-key pair removes the old relationship.
+
+    Example Usage:
+        >>> md = MirrorDict({'a': 1, 'b': 2})
+        >>> print(md)
+        MirrorDict({'a': 1, 'b': 2, 1: 'a', 2: 'b'})
+
+        >>> md['c'] = 3
+        >>> print(md[3])
+        'c'
+
+        >>> del md['a']
+        >>> print(md)
+        MirrorDict({'b': 2, 2: 'b'})
+
+        >>> md.update({'x': 10}, y=20)
+        >>> print(md)
+        MirrorDict({'b': 2, 2: 'b', 'x': 10, 'y': 20, 10: 'x', 20: 'y'})
+
+    """
+
     _key: dict
     _val: dict
 
@@ -386,12 +479,33 @@ class MirrorDict(MutableMapping):
 
 
 if __name__ == "__main__":
-    md = MirrorDict(zip(["a", "b", "c"], [1, 2, 3]))
-    md.update([("d", 4), ("e", 5), ("f", 6)])
-    print(md)
+    md = MirrorDict()
+    md["a"] = 1
+    md["b"] = 2
+    md["c"] = 3
+    assert md["b"] == 2
+    assert md[2] == "b"
 
-    print(md.keys())
-    print(md.values())
-    print(md.items())
-    md.clear()
-    print(md.items())
+    assert list(md.keys()) == ["a", "b", "c"]
+    assert list(md.values()) == [1, 2, 3]
+
+    md.update([("d", 4), ("e", 5)])
+    md["f"] = 6
+
+    assert list(md.keys()) == ["a", "b", "c", "d", "e", "f"]
+    assert list(md.values()) == [1, 2, 3, 4, 5, 6]
+
+    del md[5]
+    pop3 = md.pop(3)
+
+    assert pop3 == "c"
+
+    assert list(md.keys()) == ["a", "b", "d", "f"]
+    assert list(md.values()) == [1, 2, 4, 6]
+
+    md[2] = "b"  # set command updates key=2 and value="b"
+
+    assert list(md.keys()) == ["a", "d", "f", 2]
+    assert list(md.values()) == [1, 4, 6, "b"]
+
+    print("program completed successfully")

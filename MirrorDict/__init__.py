@@ -5,8 +5,7 @@ This module defines the `MirrorDict` class.
 
 
 Classes:
-    - `MirrorDict`: Represents the result of an operation, containing either
-                an `Ok(value)` for success or an `Err(error)` for failure.
+    - `MirrorDict`: 
 
 
 Key Features:
@@ -65,6 +64,26 @@ class MirrorDict:
         self._val = {}
         self.update(*args, **kwargs)
 
+    def clear(self):
+        """
+        Remove all items from the MirrorDict instance.
+        """
+        self._key.clear()
+        self._val.clear()
+        return self
+
+    def items(self):
+        """
+        Iterate over key-value pairs from the initial mapping.
+        """
+        return self._key.items()
+
+    def keys(self):
+        """
+        Return an iterator over the keys of the dictionary.
+        """
+        return self._key.keys()
+
     def update(self, *args, **kwargs):
         """
         Update the MirrorDict with key-value pairs from a mapping, iterable, or keyword arguments.
@@ -111,6 +130,12 @@ class MirrorDict:
         for key, val in kwargs.items():
             self._update(key, val)
         return self
+
+    def values(self):
+        """
+        Return an iterator over the values of the dictionary.
+        """
+        return self._key.values()
 
     def _update(self, key, val):
         """
@@ -162,3 +187,9 @@ if __name__ == "__main__":
     md = MirrorDict(zip(["a", "b", "c"], [1, 2, 3]))
     md.update([("d", 4), ("e", 5), ("f", 6)])
     print(md)
+
+    print(md.keys())
+    print(md.values())
+    print(md.items())
+    md.clear()
+    print(md.items())

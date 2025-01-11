@@ -72,6 +72,22 @@ class MirrorDict(MutableMapping):
         self._val.clear()
         return self
 
+    def copy(self):
+        """
+        Return a shallow copy of the MirrorDict instance.
+        """
+        return MirrorDict(self)
+
+    def get(self, key, default=None):
+        """
+        Return the value for key if key is in the dictionary, else default.
+        """
+        if key in self._key:
+            return self._key[key]
+        if key in self._val:
+            return self._val[key]
+        return default
+
     def items(self):
         """
         Iterate over key-value pairs from the initial mapping.
@@ -190,6 +206,9 @@ class MirrorDict(MutableMapping):
         Iterate only over initial_keys.
         """
         return iter(self._key)
+
+    def __contains__(self, key):
+        return key in self._key or key in self._val
 
     def __setitem__(self, key, value):
         """

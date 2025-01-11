@@ -482,6 +482,37 @@ class MirrorDict(MutableMapping):
         else:
             raise KeyError(f'del MirrorDict[key] does not have key="{key}".')
 
+    def __ior__(self, other):  # dict concat with assignment, a |= b
+        return self.update(other)
+
+    def __or__(self, other):  # dict concat, a | b
+        return MirrorDict(self, other)
+
+    def __ror__(self, other):  # reverse dict concat, b | a
+        return MirrorDict(other, self)
+
+    def __eq__(self, other):  # compare self == other.
+        if isinstance(other, MirrorDict):
+            return self._key == other._key
+        return self._key == other
+
+    def __ne__(self, other):  # compare self != other.
+        if isinstance(other, MirrorDict):
+            return self._key != other._key
+        return self._key != other
+
+    def __lt__(self, other):  # compare self < other.
+        raise TypeError(f"'<' not supported between instances of 'MirrorDict' and '{type(other)}'")
+
+    def __le__(self, other):  # compare self <= other.
+        raise TypeError(f"'<=' not supported between instances of 'MirrorDict' and '{type(other)}'")
+
+    def __gt__(self, other):  # compare self > other.
+        raise TypeError(f"'>' not supported between instances of 'MirrorDict' and '{type(other)}'")
+
+    def __ge__(self, other):  # compare self >= other.
+        raise TypeError(f"'>=' not supported between instances of 'MirrorDict' and '{type(other)}'")
+
 
 # %% -----------------------------------------------------------------------------------------------
 

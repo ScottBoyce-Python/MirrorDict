@@ -148,6 +148,12 @@ class MirrorDict:
         self._key[key] = val
         self._val[val] = key
 
+    def __str__(self):
+        return f"MirrorDict({self._key})"
+
+    def __repr__(self):
+        return str(self)
+
 
 # %% -----------------------------------------------------------------------------------------------
 
@@ -155,3 +161,4 @@ class MirrorDict:
 if __name__ == "__main__":
     md = MirrorDict(zip(["a", "b", "c"], [1, 2, 3]))
     md.update([("d", 4), ("e", 5), ("f", 6)])
+    print(md)

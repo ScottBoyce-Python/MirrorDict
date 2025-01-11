@@ -179,6 +179,58 @@ class MirrorDict(MutableMapping):
         del self._val[val]
         return key, val
 
+    def __reversed__(self):
+        return reversed(self._key.keys())
+
+    def reversed(self):
+        """
+        Return a reversed iterator over the dictionary's keys.
+
+        This is equivalent to iterating over the keys in reverse order. Note that this
+        method affects only the order of keys when iterated; it does not change the
+        internal order of storage.
+
+        Returns:
+            A reversed iterator over the dictionary's keys.
+
+        Example:
+            >>> md = MirrorDict({'a': 1, 'b': 2})
+            >>> list(md.reversed())
+            ['b', 'a']
+        """
+        return reversed(self._key.keys())
+
+    def setdefault(self, key, default=None):
+        """
+        Insert a key-value pair into the dictionary if the key is not already present.
+
+        If the key exists, its associated value is returned. If the key does not exist,
+        the `default` value is used as the key's value, and the new key-value pair is
+        added to the dictionary.
+
+        Args:
+            key: The key to check or insert.
+            default: The value to associate with the key if it is not already present.
+                     Defaults to `None`.
+
+        Returns:
+            The value associated with the key.
+
+        Example:
+            >>> md = MirrorDict(a=1)
+            >>> md.setdefault('b', 2)
+            2
+            >>> md.setdefault('a', 3)
+            1
+        """
+        if key in self._key:
+            return self._key[key]
+        if key in self._val:
+            return self._val[key]
+
+        self._update(key, default)
+        return default
+
     def update(self, *args, **kwargs):
         """
         Update the MirrorDict with key-value pairs from a mapping, iterable, or keyword arguments.

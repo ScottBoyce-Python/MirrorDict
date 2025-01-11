@@ -377,6 +377,14 @@ class MirrorDict(MutableMapping):
         """
         return self._key.values()
 
+    def order_values(self):
+        """
+        Ensures that the order of the values are one to one with the keys.
+        """
+        if self._key.values() != self.values.keys():
+            self.values = {v: k for k, v in self._key.items()}
+        return self
+
     def _update(self, key, val):
         """
         Add or update a key-value pair and maintain the mirrored relationship.

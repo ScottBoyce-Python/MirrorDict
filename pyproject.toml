@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MirrorDict"
-description = "MirrorDict is a ."
+description = "MirrorDict is a dictionary-like object that maintains a bi-directional mapping between keys and values."
 authors = [{ name = "Scott E. Boyce", email = "Boyce@engineer.com" }]
 maintainers = [{ name = "Scott E. Boyce", email = "Boyce@engineer.com" }]
 license = { text = "MIT" }

@@ -88,7 +88,9 @@ __email__ = "boyce@engineer.com"
 __license__ = "MIT"
 __status__ = "Development"  # set to "Prototype", "Development", "Production"
 __url__ = "https://github.com/ScottBoyce-Python/MirrorDict"
-__description__ = "MirrorDict is a ."
+__description__ = (
+    "MirrorDict is a dictionary-like object that maintains a bi-directional mapping between keys and values."
+)
 __copyright__ = "Copyright (c) 2025 Scott E. Boyce"
 
 __all__ = ["MirrorDict"]

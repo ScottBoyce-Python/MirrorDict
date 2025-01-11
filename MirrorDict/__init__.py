@@ -47,7 +47,7 @@ import inspect
 # %% -----------------------------------------------------------------------------------------------
 
 
-class MirrorDict:
+class MirrorDict(MutableMapping):
     _key: dict
     _val: dict
 
@@ -115,7 +115,7 @@ class MirrorDict:
             MirrorDict({'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'})
         """
         for arg in args:
-            if isinstance(arg, (MutableMapping, MirrorDict)):
+            if isinstance(arg, MutableMapping):
                 for key, val in arg.items():
                     self._update(key, val)
             elif hasattr(arg, "__iter__"):  # If it's an iterable of key-value pairs

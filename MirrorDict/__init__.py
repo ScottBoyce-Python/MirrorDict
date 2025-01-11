@@ -191,6 +191,46 @@ class MirrorDict:
         """
         return iter(self._key)
 
+    def __setitem__(self, key, value):
+        """
+        Add a new key-value pair while enforcing rules.
+
+        Args:
+            key (Any): The key.
+            value (Any): The corresponding value, which must be the opposite type of the key.
+        """
+        self._update(key, value)
+
+    def __getitem__(self, key):
+        """
+        Retrieve the value associated with a key.
+        Args:
+            key (Any): The key to look up.
+
+        Returns:
+            Any: The corresponding value.
+
+        """
+        if key in self._key:
+            return self._key[key]
+        if key in self._val:
+            return self._val[key]
+        raise KeyError(f'MirrorDict[key] does not have key="{key}".')
+
+    def __delitem__(self, key):
+        """
+        Deletes both the key and its bidirectional counterpart (keys ? values).
+        """
+        if key in self._key:
+            val = self._key.pop(key)
+            self._val.pop(val)
+        elif key in self._val:
+            val = key
+            key = self._val.pop(val)
+            self._key.pop(key)
+        else:
+            raise KeyError(f'del MirrorDict[key] does not have key="{key}".')
+
 
 # %% -----------------------------------------------------------------------------------------------
 

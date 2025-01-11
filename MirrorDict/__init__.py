@@ -100,6 +100,85 @@ class MirrorDict(MutableMapping):
         """
         return self._key.keys()
 
+    def pop(self, key, default=KeyError):
+        """
+        Remove a key (or value) and its mirrored counterpart from the dictionary.
+
+        If the key (or value) exists in the dictionary, both it and its mirrored
+        counterpart are removed. If the key does not exist, the `default` value
+        is returned if provided; otherwise, a `KeyError` is raised.
+
+        Args:
+            key: The key (or value) to remove.
+            default: The value to return if the key is not found.
+                    If not provided, a `KeyError` is raised.
+
+        Returns:
+            The removed value if a key is provided, or the removed key if a value is provided.
+
+        Raises:
+            KeyError: If the key is not found and no default is provided.
+
+        Example Usage:
+            >>> md = MirrorDict({'a': 1, 'b': 2})
+            >>> md.pop('a')  # Removes the key 'a' and its mirrored counterpart 1
+            1
+            >>> md
+            MirrorDict({'b': 2, 2: 'b'})
+
+            >>> md.pop(2)  # Removes the value 2 and its mirrored counterpart 'b'
+            'b'
+            >>> md
+            MirrorDict({})
+
+            >>> md.pop('c', 'default')  # Returns 'default' as 'c' does not exist
+            'default'
+
+            >>> md.pop('c')  # Raises KeyError as 'c' does not exist and no default is provided
+            Traceback (most recent call last):
+                ...
+            KeyError: 'MirrorDict.pop(key, default): key="c" not found and default=KeyError.'
+        """
+        if key in self._key:
+            val = self._key[key]
+            del self._key[key]
+            del self._val[val]
+            return val
+        if key in self._val:
+            key, val = self._val[key], key
+            del self._key[key]
+            del self._val[val]
+            return key
+        if default is not KeyError:
+            return default
+        raise KeyError(f'MirrorDict.pop(key, default) key="{key}" not found and default=KeyError.')
+
+    def popitem(self):
+        """
+        Remove and return an arbitrary key-value pair from the dictionary.
+
+        Removes the last inserted key-value pair and ensures the mirrored relationship
+        is updated accordingly. If the dictionary is empty, raises a `KeyError`.
+
+        Returns:
+            tuple: A tuple containing the key and value of the removed item.
+
+        Raises:
+            KeyError: If the dictionary is empty.
+
+        Example:
+            >>> md = MirrorDict(a=1, b=2)
+            >>> md.popitem()
+            ('b', 2)
+            >>> print(md)
+            MirrorDict({'a': 1, 1: 'a'})
+        """
+        if len(self._key) == 0:
+            raise KeyError("MirrorDict.popitem() dictionary is empty.")
+        key, val = self._key.popitem()
+        del self._val[val]
+        return key, val
+
     def update(self, *args, **kwargs):
         """
         Update the MirrorDict with key-value pairs from a mapping, iterable, or keyword arguments.

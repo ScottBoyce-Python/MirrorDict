@@ -41,148 +41,117 @@ __all__ = ["MirrorDict"]
 # %% -----------------------------------------------------------------------------------------------
 
 
-from collections.abc import Sequence, Iterable, KeysView, ValuesView
-from copy import deepcopy as _deepcopy
+from collections.abc import Hashable, MutableMapping
+import inspect
 
 
 # %% -----------------------------------------------------------------------------------------------
 
 
-class MirrorDict(dict):
-    """
-    A custom dictionary that hashes both the key and value.
-
-    Attributes:
-        initial_keys (set): Set of items that were initially used as the key component.
-        initial_values (set): Set of items that were initially used as the values component.
-
-    Methods:
-        keys(): Returns all initial_keys.
-        values(): Returns all initial_values.
-        items(): Iterates over key-value pairs.
-        copy(): Creates a shallow copy of the dictionary.
-    """
+class MirrorDict:
+    _key: dict
+    _val: dict
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize the dictionary, supporting key-value pairs
-        while enforcing the custom rules.
-        """
-        super().__init__()
-        self.initial_keys = set()
-        self.initial_values = set()
-        # Accept arguments in various forms like dicts, lists, or kwargs
-        for key, value in dict(*args, **kwargs).items():
-            self[key] = value
+        Initialize a MirrorDict instance.
 
-    def keys(self):
+        Args:
+            *args: A mapping object (e.g., dictionary) or an iterable of key-value pairs
+                   to initialize the MirrorDict.
+            **kwargs: Additional key-value pairs to initialize the MirrorDict.
         """
-        Return a dynamic KeysView reflecting initial_keys.
-        """
-        return KeysView(self.initial_keys)
-
-    def values(self):
-        """
-        Return a dynamic ValuesView reflecting initial_values.
-        """
-        return ValuesView(self.initial_values)
-
-    def items(self):
-        """
-        Iterate over initial_keys and return (key, value) pairs.
-        """
-        for key in self.initial_keys:
-            yield key, self[key]
-
-    def copy(self):
-        """
-        Return a shallow copy of the MirrorDict instance.
-        """
-        new_copy = MirrorDict()
-        for key, value in self.items():
-            new_copy[key] = value
-        return new_copy
-
-    def __iter__(self):
-        """
-        Iterate only over initial_keys.
-        """
-        return iter(self.initial_keys)
-
-    def pop(self, *args, **kwargs):
-        raise NotImplementedError("MirrorDict: Method not supported")
-
-    def popitem(self, *args, **kwargs):
-        raise NotImplementedError("MirrorDict: Method not supported")
-
-    def reversed(self, *args, **kwargs):
-        raise NotImplementedError("MirrorDict: Method not supported")
-
-    def setdefault(self, *args, **kwargs):
-        raise NotImplementedError("MirrorDict: Method not supported")
+        self._key = {}
+        self._val = {}
+        self.update(*args, **kwargs)
 
     def update(self, *args, **kwargs):
-        raise NotImplementedError("MirrorDict: Method not supported")
-
-    def __setitem__(self, key, value):
         """
-        Add a new key-value pair while enforcing rules.
+        Update the MirrorDict with key-value pairs from a mapping, iterable, or keyword arguments.
+
+        This method adds new key-value pairs to the dictionary or updates the value for
+        existing keys. Each key-value pair is mirrored such that the value is also mapped
+        back to the key.
 
         Args:
-            key (Any): The key.
-            value (Any): The corresponding value, which must be the opposite type of the key.
-        """
-
-        # Remove previous mappings if they exist
-        if key in self:
-            old_value = self[key]
-            del self[key]
-            del self[old_value]
-            self._remove(key, old_value)
-        if value in self:
-            old_key = self[value]
-            del self[value]
-            del self[old_key]
-            self._remove(old_key, value)
-
-        # Add new mappings
-        self.initial_keys.add(key)
-        self.initial_values.add(value)
-        super().__setitem__(key, value)
-        super().__setitem__(value, key)
-
-    def __getitem__(self, key):
-        """
-        Retrieve the value associated with a key.
-        Args:
-            key (Any): The key to look up.
+            *args:
+                - A mapping object (e.g., another dictionary) containing key-value pairs to add.
+                - An iterable of key-value pairs (e.g., a list of tuples).
+            **kwargs:
+                Additional key-value pairs to add or update.
 
         Returns:
-            Any: The corresponding value.
+            MirrorDict: The updated instance of the dictionary
+                        (update is done inplace, but returns self for chaining methods).
 
-        """
-        return super().__getitem__(key)
+        Raises:
+            TypeError: If an argument is not a mapping or an iterable of key-value pairs.
 
-    def __delitem__(self, key):
-        """
-        Deletes both the key and its bidirectional counterpart (keys ↔ values).
-        """
-        if key in self:
-            value = self[key]
-            self._remove(key, value)
-            super().__delitem__(key)
-            super().__delitem__(value)
+        Example Usage:
+            >>> md = MirrorDict({'a': 1})
+            >>> md.update({'b': 2}, c=3)
+            MirrorDict({'a': 1, 'b': 2, 'c': 3, 1: 'a', 2: 'b', 3: 'c'})
 
-    def _remove(self, key, value):
+            >>> md.update([('d', 4), ('e', 5)])
+            MirrorDict({'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e'})
         """
-        Safely remove key-value pair references from tracking sets.
+        for arg in args:
+            if isinstance(arg, (MutableMapping, MirrorDict)):
+                for key, val in arg.items():
+                    self._update(key, val)
+            elif hasattr(arg, "__iter__"):  # If it's an iterable of key-value pairs
+                try:
+                    for key, val in arg:
+                        self._update(key, val)
+                except ValueError as e:
+                    raise TypeError("MirrorDict.update() expected a dict-like or an iterable of key-value pairs") from e
+            else:
+                raise TypeError("MirrorDict.update() expected a dict-like or an iterable of key-value pairs")
+
+        for key, val in kwargs.items():
+            self._update(key, val)
+        return self
+
+    def _update(self, key, val):
         """
-        self.initial_keys.remove(key)
-        self.initial_values.remove(value)
+        Add or update a key-value pair and maintain the mirrored relationship.
+
+        Args:
+            key: The key to add or update.
+            val: The value to associate with the key.
+
+        Raises:
+            TypeError: If key or value is not hashable.
+        """
+        if not isinstance(key, Hashable) or not isinstance(val, Hashable):
+            caller = inspect.stack()[1].function
+            raise TypeError(
+                f"MirrorDict.{caller}(): both key and value must be hashable, but received key='{key}' ({type(key)}) "
+                f"and value='{val}' ({type(val)})."
+            )
+
+        if key in self._key:  # key already defined, check if val is the same or needs to be updated
+            val_old = self._key[key]
+            if val_old == val:
+                return
+            self._val.pop(val_old)
+
+        elif val in self._val:  # val already defined, update key to it
+            self._key.pop(self._val[val])
+
+        elif key in self._val:  # key in _val, so need to reverse storage direction
+            self._key.pop(self._val.pop(key))
+
+        elif val in self._key:  # val in _key, so need to reverse storage direction
+            self._val.pop(self._key.pop(val))
+
+        self._key[key] = val
+        self._val[val] = key
 
 
 # %% -----------------------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":
-    print("program completed successfully")
+    md = MirrorDict(zip(["a", "b", "c"], [1, 2, 3]))
+    md.update([("d", 4), ("e", 5), ("f", 6)])

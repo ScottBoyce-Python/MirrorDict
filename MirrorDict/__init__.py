@@ -179,6 +179,18 @@ class MirrorDict:
     def __repr__(self):
         return str(self)
 
+    def __hash__(self) -> int:
+        return hash(self._key)
+
+    def __len__(self):
+        return len(self._key)
+
+    def __iter__(self):
+        """
+        Iterate only over initial_keys.
+        """
+        return iter(self._key)
+
 
 # %% -----------------------------------------------------------------------------------------------
 

@@ -436,15 +436,17 @@ class MirrorDict(MutableMapping):
             val_old = self._key[key]
             if val_old == val:
                 return
-            self._val.pop(val_old)
+            key_old = self._val.pop(val_old)
+            if key_old != key:
+                self._key.pop(key_old)
 
-        elif val in self._val:  # val already defined, update key to it
-            self._key.pop(self._val[val])
-
-        elif key in self._val:  # key in _val, so need to reverse storage direction
+        if key in self._val:  # key in _val, so need to reverse storage direction
             self._key.pop(self._val.pop(key))
 
-        elif val in self._key:  # val in _key, so need to reverse storage direction
+        if val in self._val:  # val already defined, update key to it
+            self._key.pop(self._val[val])
+
+        if val in self._key:  # val in _key, so need to reverse storage direction
             self._val.pop(self._key.pop(val))
 
         self._key[key] = val

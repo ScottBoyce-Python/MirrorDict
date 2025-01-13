@@ -2,19 +2,6 @@ import pytest
 from MirrorDict import MirrorDict
 
 
-def test_initialization():
-    md = MirrorDict({"a": 1, "b": 2})
-    assert md["a"] == 1
-    assert md[1] == "a"
-    assert md["b"] == 2
-    assert md[2] == "b"
-
-
-def test_empty_initialization():
-    md = MirrorDict()
-    assert len(md) == 0
-
-
 def test_add_and_lookup():
     md = MirrorDict()
     md["x"] = 10
@@ -51,7 +38,7 @@ def test_add_and_update_and_lookup():
     assert md[20] == "a"
 
 
-def test_key_order():
+def test_key_val_order():
     md = MirrorDict()
     md["x"] = 10
     md["y"] = 20
@@ -72,6 +59,28 @@ def test_key_order():
     assert md[10] == "x"
     assert md[30] == "z"
     assert md[20] == "a"
+
+
+def test_key_shift_order():
+    md = MirrorDict(a=1, b=2, c=3, d=4, e=5, f=6, g=7, h=8, i=9, j=10)
+    md.pop(4)  #    drops d=4
+    md.pop("f")  #  drop f=6
+    md[3] = "c"  #  drop "c" key and add 3="c"
+    md["k"] = 11  # add k=11
+    md["b"] = 99  # change to b=99
+
+    assert list(md.keys()) == ["a", "b", "e", "g", "h", "i", "j", 3, "k"]
+    assert list(md.values()) == [1, 99, 5, 7, 8, 9, 10, "c", 11]
+
+    md["b"] = 8  # change to b=8, which causes h=8 to be dropped
+
+    assert list(md.keys()) == ["a", "b", "e", "g", "i", "j", 3, "k"]
+    assert list(md.values()) == [1, 8, 5, 7, 9, 10, "c", 11]
+
+    md["l"] = 1  # change to b=8, which causes h=8 to be dropped
+
+    assert list(md.keys()) == ["b", "e", "g", "i", "j", 3, "k", "l"]
+    assert list(md.values()) == [8, 5, 7, 9, 10, "c", 11, 1]
 
 
 def test_update_with_mapping():
@@ -145,10 +154,10 @@ def test_pop_nonexistent_key_raises():
 
 
 def test_popitem():
-    md = MirrorDict({"a": 1, "b": 2})
+    md = MirrorDict([("a", 1), ("b", 2)])
     key, value = md.popitem()
-    assert key in ["a", "b"]
-    assert value in [1, 2]
+    assert key == "b"
+    assert value == 2
     assert key not in md
     assert value not in md
 
@@ -192,6 +201,38 @@ def test_len():
 def test_iter():
     md = MirrorDict({"a": 1, "b": 2})
     assert list(iter(md)) == ["a", "b"]
+
+
+def test_iter_loop():
+    kv = [("a", 1), ("b", 2), ("c", 3)]
+    md = MirrorDict(kv)
+    for i, k in enumerate(md):
+        assert (k, md[k]) == kv[i]
+
+
+def test_iter_loop_keys():
+    kv = [("a", 1), ("b", 2), ("c", 3)]
+    md = MirrorDict(kv)
+    for i, k in enumerate(md.keys()):
+        assert (k, md[k]) == kv[i]
+
+
+def test_iter_loop_values():
+    kv = [("a", 1), ("b", 2), ("c", 3)]
+    md = MirrorDict(kv)
+    for i, v in enumerate(md.values()):
+        assert (md[v], v) == kv[i]
+
+
+def test_iter_loop_items():
+    kv = [("a", 1), ("b", 2), ("c", 3)]
+    md = MirrorDict(kv)
+    for i, (k, v) in enumerate(md.items()):
+        assert (k, v) == kv[i]
+    i = 0
+    for k, v in md.items():
+        assert (k, v) == kv[i]
+        i += 1
 
 
 def test_eq():
@@ -350,13 +391,16 @@ def test_str_empty():
 def test_repr_empty():
     md = MirrorDict()
     assert repr(md) == "MirrorDict({})"
+    assert len(md) == 0
 
     md = MirrorDict({"a": 1, "b": 2, "c": 3})
     md.clear()
     assert repr(md) == "MirrorDict({})"
+    assert len(md) == 0
 
     md = MirrorDict({"a": 1, "b": 2, "c": 3})
     md.popitem()
     md.popitem()
     md.popitem()
     assert repr(md) == "MirrorDict({})"
+    assert len(md) == 0

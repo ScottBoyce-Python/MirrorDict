@@ -383,14 +383,18 @@ class MirrorDict(MutableMapping):
             if isinstance(arg, MutableMapping):
                 for key, val in arg.items():
                     self._update(key, val)
-            elif hasattr(arg, "__iter__"):  # If it's an iterable of key-value pairs
+            elif hasattr(arg, "__iter__") and not isinstance(arg, str):  # If it's an iterable of key-value pairs
                 try:
                     for key, val in arg:
                         self._update(key, val)
                 except ValueError as e:
-                    raise TypeError("MirrorDict.update() expected a dict-like or an iterable of key-value pairs") from e
+                    raise TypeError(
+                        f"MirrorDict.update() expected a dict-like or an iterable of key-value pairs but received: {arg}"
+                    ) from e
             else:
-                raise TypeError("MirrorDict.update() expected a dict-like or an iterable of key-value pairs")
+                raise TypeError(
+                    f"MirrorDict.update() expected a dict-like or an iterable of key-value pairs but received: {arg}"
+                )
 
         for key, val in kwargs.items():
             self._update(key, val)

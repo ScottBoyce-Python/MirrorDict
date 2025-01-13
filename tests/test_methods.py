@@ -258,9 +258,9 @@ def test_ior():
 def test_or():
     md1 = MirrorDict({"a": 1})
     md2 = MirrorDict({"b": 2})
-    result = md1 | md2
-    assert result["b"] == 2
-    assert result[2] == "b"
+    md = md1 | md2
+    assert md["b"] == 2
+    assert md[2] == "b"
 
 
 def test_ror():

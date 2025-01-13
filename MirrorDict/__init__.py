@@ -3,10 +3,15 @@ MirrorDict Module
 
 This module defines the `MirrorDict` class, a bi-directional dictionary-like object.
 It supports all the dict methods and maintains a mirrored relationship between
-keys and values such that `key:value` pairs are also stored as `value:key` pairs.
-The order of the keys is preserved, but the order of the values is not guaranteed.
-Methods, such as keys() and values() method return the items that were set as
-initially as a key and value. Requires that both the key and values be hashable and unique.
+keys (`k`) and values (`v`) such that `k:v` pairs are also stored as `v:k` pairs.
+Requires that both the key and values be hashable and unique.
+
+The order of the keys are preserved and the order of values are based on the keys.
+Methods, such as keys() and values() method return the items that were set
+initially as a key and value. That is, for a given key, updating its value keeps
+the original order of the keys but moves the new value to the end of values.
+However, setting an existing `v` as a key, moves the value to the end of the keys,
+removes the existing `k` from the keys and adds it to the end of the values.
 
 Classes:
     - `MirrorDict`: Represents a bi-directional dictionary, where each key-value pair
@@ -16,9 +21,12 @@ Key Features:
     - Automatically maintains a bi-directional mapping between keys and values.
         - Key-index lookup will return `value` for `key`, and return `key` for `value`.
     - Ensures all keys and values are hashable.
-    - Supports standard dictionary operations (e.g., `get`, `setdefault`, `pop`).
+    - Supports standard dictionary operations (e.g., `keys`, `items`, `get`, `pop`).
     - What is stored initially as a key   is represented as a `dict_keys` and
       what is stored initially as a value is represented as a `dict_values`.
+    - Changing either a key or value removes the old mirrored relationship
+      to create the new one. If the key is changed, then the old one is
+      removed and the new added to the end of keys().
 
 Constructors:
     MirrorDict(*args, **kwargs):
@@ -108,21 +116,36 @@ import inspect
 
 class MirrorDict(MutableMapping):
     """
-    A dictionary-like object that maintains a bi-directional mapping between keys and values.
+    A dictionary-like object that maintains a bi-directional/mirrored mapping
+    between keys and values.
 
-    The `MirrorDict` ensures every key-value pair added is mirrored as a value-key pair.
-    This means you can look up either by key or by value, and the corresponding value or
-    key will be returned.
+    A `MirrorDict` object ensures every key-value pair (`k:v`) added is mirrored as
+    a value-key pair (`v:k`). This means you can look up either by key or by value,
+    and the corresponding value or key will be returned.
+
+    The order of the keys are preserved and the order of values are based on the keys.
+    Methods, such as `keys()` and `values()` method return the items that were set
+    initially as a key and value. That is, for a given key, updating its value keeps
+    the original order of the keys but moves the new value to the end of values.
+    However, setting an existing `v` as a key, moves the value to the end of the keys,
+    removes the existing `k` from the keys and adds it to the end of the values.
 
     Key Features:
-        - Keys and values are automatically mirrored.
-        - Supports all standard dictionary operations (get, set, delete, iterate, etc.).
+        - Automatically maintains a bi-directional mapping between keys and values.
+            - Key-index lookup will return `value` for `key`, and return `key` for `value`.
+        - Ensures all keys and values are hashable.
+        - Supports standard dictionary operations (e.g., `keys`, `items`, `get`, `pop`).
+        - What is stored initially as a key   is represented as a `dict_keys` and
+          what is stored initially as a value is represented as a `dict_values`.
+        - Changing either a key or value removes the old mirrored relationship
+          to create the new one. If the key is changed, then the old one is
+          removed and the new added to the end of keys().
         - Accepts initialization with mappings, iterables of key-value pairs, or keyword arguments.
-        - Enforces consistency: when a key or value is updated, the mirrored relationship is updated.
 
     Constraints:
-        - Keys and values must be hashable.
-        - Overwriting an existing key-value or value-key pair removes the old relationship.
+        - Keys and values must be hashable and unique.
+        - Given a key-value pair, updating to a new key or new value replaces the
+          existing key-value with the new one.
 
     Example Usage:
         >>> md = MirrorDict({'a': 1, 'b': 2})
@@ -520,7 +543,7 @@ class MirrorDict(MutableMapping):
 
 
 if __name__ == "__main__":
-    md = MirrorDict()
+    md = MirrorDict()  # Empty MirrorDict
     md["a"] = 1
     md["b"] = 2
     md["c"] = 3

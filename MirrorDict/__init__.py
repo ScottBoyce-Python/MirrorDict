@@ -88,7 +88,7 @@ Example Usage:
 
 # %% -----------------------------------------------------------------------------------------------
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __author__ = "Scott E. Boyce"
 __credits__ = "Scott E. Boyce"
 __maintainer__ = "Scott E. Boyce"
